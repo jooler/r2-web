@@ -4,9 +4,12 @@
     "strict": true,
     "strictNullChecks": false,
     "target": "esnext",
+    "noEmit": true,
     "module": "esnext",
+    "allowJs": true,
     "moduleResolution": "bundler",
+    "types": ["node"],
     "lib": ["esnext", "DOM", "DOM.Iterable"]
   },
-  "include": ["src/**/*.js"]
+  "include": ["src/**/*.js", "bump.config.ts", "changelog.config.ts"]
 }

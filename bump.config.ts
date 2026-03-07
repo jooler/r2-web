@@ -4,6 +4,7 @@ import fs from 'node:fs/promises'
 import pkg from './package.json' with { type: 'json' }
 
 export default defineConfig({
+  all: true,
   async execute() {
     const constantsFile = path.resolve(import.meta.dirname, './src/js/constants.js')
 
