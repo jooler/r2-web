@@ -205,22 +205,43 @@ class UIManager {
     }
   }
 
-  /** @param {string} title @param {string} label @param {string} [defaultValue] @returns {Promise<string | null>} */
-  prompt(title, label, defaultValue = '') {
+  /**
+   * @param {string} title
+   * @param {string} label
+   * @param {string} [defaultValue]
+   * @param {{ validate?: (v: string) => string | null }} [options]
+   * @returns {Promise<string | null>}
+   */
+  prompt(title, label, defaultValue = '', { validate } = {}) {
     return new Promise(resolve => {
       const dialog = /** @type {HTMLDialogElement} */ ($('#prompt-dialog'))
       const form = $('#prompt-form')
       const input = /** @type {HTMLInputElement} */ ($('#prompt-input'))
+      const errorEl = $('#prompt-error')
       $('#prompt-title').textContent = title
       $('#prompt-label').textContent = label
       input.value = defaultValue
+      errorEl.textContent = ''
+      errorEl.hidden = true
 
       /** @type {string | null} */
       let result = null
 
+      /** @returns {boolean} */
+      const checkValid = () => {
+        if (!validate) return true
+        const err = validate(input.value)
+        errorEl.textContent = err ?? ''
+        errorEl.hidden = !err
+        return !err
+      }
+
+      const onInput = () => checkValid()
+
       /** @param {Event} e */
       const onSubmit = e => {
         e.preventDefault()
+        if (!checkValid()) { input.focus(); return }
         result = input.value.trim() || null
         dialog.close()
       }
@@ -234,12 +255,14 @@ class UIManager {
 
       const onClose = () => {
         form.removeEventListener('submit', onSubmit)
+        input.removeEventListener('input', onInput)
         $('#prompt-cancel').removeEventListener('click', onCancel)
         dialog.removeEventListener('click', onBackdropClick)
         resolve(result)
       }
 
       form.addEventListener('submit', onSubmit)
+      input.addEventListener('input', onInput)
       $('#prompt-cancel').addEventListener('click', onCancel)
       dialog.addEventListener('click', onBackdropClick)
       dialog.addEventListener('close', onClose, { once: true })

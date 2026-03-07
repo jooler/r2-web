@@ -120,6 +120,20 @@
       }
     }
 
+    & .field-error {
+      font-size: var(--text-xs);
+      color: var(--text-danger);
+      margin: 0;
+    }
+
+    & input:has(~ .field-error:not([hidden])) {
+      border-color: var(--text-danger);
+
+      &:focus {
+        border-color: var(--text-danger);
+      }
+    }
+
     &:not(:last-child) {
       margin-bottom: var(--sp-3);
     }

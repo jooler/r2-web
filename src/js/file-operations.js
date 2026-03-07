@@ -27,7 +27,13 @@ class FileOperations {
   /** @param {string} key @param {boolean} isFolder */
   async rename(key, isFolder) {
     const oldName = getFileName(key)
-    const newName = await this.#ui.prompt(t('renameTitle'), t('renameLabel'), oldName)
+    const newName = await this.#ui.prompt(t('renameTitle'), t('renameLabel'), oldName, {
+      validate: v => {
+        const illegal = v.match(/[/\\:*?"<>|\x00-\x1F]/g)
+        if (illegal) return t('renameInvalidChars', { chars: [...new Set(illegal)].join('  ') })
+        return null
+      },
+    })
     if (!newName || newName === oldName) return
 
     try {
