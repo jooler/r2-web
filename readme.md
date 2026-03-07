@@ -12,6 +12,11 @@
 
 跟随下方指引 [开启 CORS](#1-配置-r2-桶-cors)，然后访问 **[r2.viki.moe](https://r2.viki.moe)** 立即开始管理 R2 桶。
 
+## 反馈途径
+
+- [GitHub Issues](https://github.com/vikiboss/r2-web/issues) - 提交 bug 报告、功能建议
+- [反馈 QQ 群](https://qm.qq.com/q/e47kAlbdsc) - 即时交流、使用反馈（群号：1091212613）
+
 ## 为什么是 R2 Web？
 
 **传统方案痛点：**
