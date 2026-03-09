@@ -14,6 +14,10 @@
 
 跟随下方指引 [开启 CORS](#1-配置-r2-桶-cors)，然后访问 **[r2.viki.moe](https://r2.viki.moe)** 立即开始管理 R2 桶。
 
+## 私有部署
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvikiboss%2Fr2-web&project-name=r2-web&repository-name=r2-web&demo-title=R2%20Web&demo-description=%F0%9F%93%81%20%E8%BD%BB%E7%9B%88%E4%BC%98%E9%9B%85%E7%9A%84%20Web%20%E5%8E%9F%E7%94%9F%20Cloudflare%20R2%20%E6%A1%B6%E6%96%87%E4%BB%B6%E7%AE%A1%E7%90%86%E5%99%A8%EF%BC%8C%E4%B8%80%E5%88%87%E7%9A%86%E5%9C%A8%E6%B5%8F%E8%A7%88%E5%99%A8%E4%B8%AD%E5%AE%8C%E6%88%90%E3%80%82%20%7C%20%F0%9F%93%81%20A%20lightweight%2C%20elegant%2C%20pure-browser%20Cloudflare%20R2%20file%20manager.%20Everything%20happens%20right%20in%20your%20browser.&demo-url=https%3A%2F%2Fr2.viki.moe)
+
 ## 反馈途径
 
 - [GitHub Issues](https://github.com/vikiboss/r2-web/issues) - 提交 bug 报告、功能建议
