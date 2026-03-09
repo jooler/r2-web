@@ -16,11 +16,15 @@
 
 ## 私有部署
 
+这里提供几个常见的静态托管平台部署选项，点击按钮即可一键部署：
+
 | 平台             | 快速部署                                                                                   |
 | ---------------- | ------------------------------------------------------------------------------------------ |
 | Vercel           | [![Deploy with Vercel](https://vercel.com/button)][vercel-deploy]                          |
 | Netlify          | [![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)][netlify-deploy]      |
 | Cloudflare Pages | [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)][cloudflare-deploy] |
+
+当然，你也可以选择其他静态托管服务，将 `src` 目录下的文件部署到任何支持静态文件托管的平台（如 GitHub Pages、AWS S3、Firebase Hosting 等）。部署后别忘了去 R2 桶设置页面配置 CORS 规则，允许你的域名访问 R2 API。
 
 ## 反馈途径
 

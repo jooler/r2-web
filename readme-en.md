@@ -16,11 +16,15 @@ Follow the [CORS setup guide](#1-configure-r2-bucket-cors) below, then visit **[
 
 ## Self-Hosting
 
+Here are some common static hosting platforms for deployment. Click the buttons for one-click deployment:
+
 | Platform         | Quick Deploy                                                                               |
 | ---------------- | ------------------------------------------------------------------------------------------ |
 | Vercel           | [![Deploy with Vercel](https://vercel.com/button)][vercel-deploy]                          |
 | Netlify          | [![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)][netlify-deploy]      |
 | Cloudflare Pages | [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)][cloudflare-deploy] |
+
+Of course, you can also choose other static hosting services and deploy the files in the `src` directory to any platform that supports static file hosting (like GitHub Pages, AWS S3, Firebase Hosting, etc.). After deployment, don't forget to configure the CORS rules in your R2 bucket settings page to allow your domain to access the R2 API.
 
 ## Feedback
 
