@@ -64,7 +64,11 @@ class FilePreview {
       if (IMAGE_RE.test(key)) {
         const url = this.#r2.getPublicUrl(key) ?? (await this.#r2.getPresignedUrl(key))
         this.#currentUrl = url
-        body.innerHTML = `<img src="${url}" alt="${extractFileName(key)}">`
+        body.innerHTML = ''
+        const img = document.createElement('img')
+        img.src = url
+        img.alt = extractFileName(key)
+        body.appendChild(img)
         copyImageBtn.dataset.tooltip = t('copyImage')
         copyImageBtn.hidden = false
         copyBtn.dataset.tooltip = t('copyLink')
@@ -72,13 +76,21 @@ class FilePreview {
       } else if (VIDEO_RE.test(key)) {
         const url = this.#r2.getPublicUrl(key) ?? (await this.#r2.getPresignedUrl(key))
         this.#currentUrl = url
-        body.innerHTML = `<video src="${url}" controls></video>`
+        body.innerHTML = ''
+        const video = document.createElement('video')
+        video.src = url
+        video.controls = true
+        body.appendChild(video)
         copyBtn.dataset.tooltip = t('copyLink')
         copyBtn.hidden = false
       } else if (AUDIO_RE.test(key)) {
         const url = this.#r2.getPublicUrl(key) ?? (await this.#r2.getPresignedUrl(key))
         this.#currentUrl = url
-        body.innerHTML = `<audio src="${url}" controls></audio>`
+        body.innerHTML = ''
+        const audio = document.createElement('audio')
+        audio.src = url
+        audio.controls = true
+        body.appendChild(audio)
         copyBtn.dataset.tooltip = t('copyLink')
         copyBtn.hidden = false
       } else if (TEXT_RE.test(key)) {
@@ -99,7 +111,11 @@ class FilePreview {
         body.innerHTML = `<p style="color:var(--text-tertiary)">${t('previewNotAvailable')}</p>`
       }
     } catch (/** @type {any} */ err) {
-      body.innerHTML = `<p style="color:var(--text-danger)">${err.message}</p>`
+      const errP = document.createElement('p')
+      errP.style.color = 'var(--text-danger)'
+      errP.textContent = err.message
+      body.innerHTML = ''
+      body.appendChild(errP)
     }
   }
 

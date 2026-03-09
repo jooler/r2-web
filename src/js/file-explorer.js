@@ -238,7 +238,7 @@ class FileExplorer {
 
     card.innerHTML = `
       ${iconHtml}
-      <span class="file-card-name" title="${name}">${name}</span>
+      <span class="file-card-name"></span>
       ${
         !item.isFolder
           ? `
@@ -253,6 +253,9 @@ class FileExplorer {
         </button>
       </div>
     `
+    const nameEl = /** @type {HTMLElement} */ (card.querySelector('.file-card-name'))
+    nameEl.textContent = name
+    nameEl.setAttribute('title', name)
 
     if (isImage) {
       this.#thumbnailObserver.observe(card)
@@ -280,7 +283,12 @@ class FileExplorer {
     ol.innerHTML = ''
 
     const rootLi = document.createElement('li')
-    rootLi.innerHTML = `<button type="button" class="breadcrumb-btn" data-prefix="">${t('root')}</button>`
+    const rootBtn = document.createElement('button')
+    rootBtn.type = 'button'
+    rootBtn.className = 'breadcrumb-btn'
+    rootBtn.dataset.prefix = ''
+    rootBtn.textContent = t('root')
+    rootLi.appendChild(rootBtn)
     ol.appendChild(rootLi)
 
     if (this.#prefix) {
@@ -289,7 +297,12 @@ class FileExplorer {
       for (const part of parts) {
         accumulated += part + '/'
         const li = document.createElement('li')
-        li.innerHTML = `<button type="button" class="breadcrumb-btn" data-prefix="${accumulated}">${part}</button>`
+        const btn = document.createElement('button')
+        btn.type = 'button'
+        btn.className = 'breadcrumb-btn'
+        btn.dataset.prefix = accumulated
+        btn.textContent = part
+        li.appendChild(btn)
         ol.appendChild(li)
       }
     }

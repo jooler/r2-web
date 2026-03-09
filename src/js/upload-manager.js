@@ -320,7 +320,6 @@ class UploadManager {
     const body = $('#upload-panel-body')
     const title = $('#upload-panel-title')
 
-    panel.hidden = false
     body.innerHTML = ''
 
     const cfg = this.#config.get()
@@ -336,7 +335,6 @@ class UploadManager {
     /** @type {null | 'overwrite-all' | 'skip-all'} */
     let conflictDecision = null
     let skippedCount = 0
-    title.textContent = `${t('uploadProgress')} 0/${files.length}`
 
     for (let i = 0; i < files.length; i++) {
       let file = files[i]
@@ -377,13 +375,7 @@ class UploadManager {
 
       // Check for existing file conflict
       if (conflictDecision !== 'overwrite-all') {
-        let exists = false
-        try {
-          await this.#r2.headObject(key)
-          exists = true
-        } catch {
-          exists = false
-        }
+        const exists = await this.#r2.fileExists(key)
         if (exists) {
           if (conflictDecision === 'skip-all') {
             skippedCount++
@@ -414,13 +406,16 @@ class UploadManager {
       item.id = id
       item.innerHTML = `
         <div class="upload-item-header">
-          <div class="upload-item-name" title="${displayName}">${displayName}</div>
+          <div class="upload-item-name"></div>
           <div class="upload-item-status" id="${id}-status"></div>
         </div>
         <div class="upload-progress">
           <div class="upload-progress-bar" id="${id}-bar"></div>
         </div>
       `
+      const nameEl = /** @type {HTMLElement} */ (item.querySelector('.upload-item-name'))
+      nameEl.textContent = displayName
+      nameEl.setAttribute('title', displayName)
       body.appendChild(item)
 
       const updateStatus = /** @param {string} msg */ (msg) => {
@@ -441,6 +436,7 @@ class UploadManager {
       return
     }
 
+    panel.hidden = false
     title.textContent = `${t('uploadProgress')} 0/${uploads.length}`
 
     let completed = 0

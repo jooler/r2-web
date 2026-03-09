@@ -93,7 +93,13 @@ class UIManager {
 
     const el = document.createElement('div')
     el.className = `toast ${type}`
-    el.innerHTML = `<span class="toast-icon">${icons[type]}</span><span>${message}</span>`
+    const iconSpan = document.createElement('span')
+    iconSpan.className = 'toast-icon'
+    iconSpan.innerHTML = icons[type]
+    const msgSpan = document.createElement('span')
+    msgSpan.textContent = message
+    el.appendChild(iconSpan)
+    el.appendChild(msgSpan)
 
     container.appendChild(el)
     const duration = message.length > 80 ? TOAST_DURATION * 2 : TOAST_DURATION
