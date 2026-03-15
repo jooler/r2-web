@@ -8,6 +8,9 @@
   "license": "MIT",
   "scripts": {
     "dev": "npx serve ./src -p 5500",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
     "format": "prettier --write ./src/**/*.{ts,tsx,js,jsx,json,css,md,html} --no-error-on-unmatched-pattern",
     "typecheck": "tsc --noEmit --project jsconfig.json",
     "release": "bumpp"
@@ -57,6 +60,7 @@
     "qrcode": "^1.5.4"
   },
   "devDependencies": {
+    "@tauri-apps/cli": "^2",
     "@types/node": "^25.3.5",
     "bumpp": "^10.4.1",
     "changelogithub": "^14.0.0",

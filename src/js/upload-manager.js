@@ -342,7 +342,7 @@ class UploadManager {
       let file = files[i]
 
       if (file.size > MAX_UPLOAD_SIZE) {
-        this.#ui.toast(t('fileTooLarge', { name: file.name }), 'error')
+        this.#ui.toast(t('fileTooLarge', { name: file.name, size: filesize(MAX_UPLOAD_SIZE) }), 'error')
         continue
       }
 

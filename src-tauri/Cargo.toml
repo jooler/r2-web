@@ -1,0 +1,23 @@
+[package]
+name = "r2-web"
+version = "2.0.0"
+description = "R2 Web - Cloudflare R2 File Manager"
+authors = ["Viki <hi@viki.moe>"]
+edition = "2021"
+
+[lib]
+name = "r2_web_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[[bin]]
+name = "r2-web"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-shell = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
