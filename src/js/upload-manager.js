@@ -9,6 +9,7 @@ import { t } from './i18n.js'
 import { ConfigManager } from './config-manager.js'
 import { FileExplorer } from './file-explorer.js'
 import { R2Client } from './r2-client.js'
+import { TransferManager } from './transfer-manager.js'
 import { UIManager } from './ui-manager.js'
 import { $, applyFilenameTemplate, computeFileHash, extractFileName, getMimeType } from './utils.js'
 
@@ -156,14 +157,17 @@ class UploadManager {
   #explorer
   /** @type {ConfigManager} */
   #config
+  /** @type {TransferManager} */
+  #transfer
   #dragCounter = 0
 
-  /** @param {R2Client} r2 @param {UIManager} ui @param {FileExplorer} explorer @param {ConfigManager} config */
-  constructor(r2, ui, explorer, config) {
+  /** @param {R2Client} r2 @param {UIManager} ui @param {FileExplorer} explorer @param {ConfigManager} config @param {TransferManager} transfer */
+  constructor(r2, ui, explorer, config, transfer) {
     this.#r2 = r2
     this.#ui = ui
     this.#explorer = explorer
     this.#config = config
+    this.#transfer = transfer
   }
 
   initDragDrop() {
@@ -438,70 +442,17 @@ class UploadManager {
       return
     }
 
-    panel.hidden = false
-    title.textContent = `${t('uploadProgress')} 0/${uploads.length}`
-
-    let completed = 0
-    const results = await Promise.allSettled(
-      uploads.map((u) =>
-        this.#uploadSingleFile(u.id, u.key, u.file, u.contentType).then(
-          (result) => {
-            completed++
-            title.textContent = `${t('uploadProgress')} ${completed}/${uploads.length}`
-            return result
-          },
-          (error) => {
-            completed++
-            title.textContent = `${t('uploadProgress')} ${completed}/${uploads.length}`
-            throw error
-          },
-        ),
-      ),
-    )
-
-    const success = results.filter((r) => r.status === 'fulfilled').length
-    const fail = results.filter((r) => r.status === 'rejected').length
-
-    if (fail === 0) {
-      this.#ui.toast(t('uploadSuccess', { count: success }), 'success')
-    } else {
-      this.#ui.toast(t('uploadPartialFail', { success, fail }), 'error')
+    // Delegate all uploads to TransferManager
+    panel.hidden = true
+    for (const u of uploads) {
+      await this.#transfer.addUpload(u.file, u.key, u.contentType)
     }
+    if (!this.#transfer.isOpen) {
+      this.#transfer.open()
+    }
+    this.#ui.toast(t('uploadSuccess', { count: uploads.length }), 'info')
     if (skippedCount > 0) {
       this.#ui.toast(t('uploadSkipped', { count: skippedCount }), 'info')
-    }
-
-    await this.#explorer.refresh()
-  }
-
-  /** @param {string} id @param {string} key @param {File} file @param {string} contentType */
-  async #uploadSingleFile(id, key, file, contentType) {
-    const signed = await this.#r2.putObjectSigned(key, contentType)
-    const bar = $(`#${id}-bar`)
-
-    if (bar) bar.classList.add('indeterminate')
-
-    const headers = new Headers()
-    for (const [k, v] of Object.entries(signed.headers)) {
-      if (k.toLowerCase() !== 'host') headers.set(k, v)
-    }
-
-    const res = await fetch(signed.url, {
-      method: 'PUT',
-      headers,
-      body: file,
-    })
-
-    if (bar) bar.classList.remove('indeterminate')
-
-    if (!res.ok) {
-      if (bar) bar.classList.add('error')
-      throw new Error(`HTTP ${res.status}`)
-    }
-
-    if (bar) {
-      bar.classList.add('done')
-      bar.style.width = '100%'
     }
   }
 }

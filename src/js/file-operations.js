@@ -2,6 +2,7 @@ import { IMAGE_RE, VIDEO_RE, AUDIO_RE } from './constants.js'
 import { t } from './i18n.js'
 import { FileExplorer } from './file-explorer.js'
 import { R2Client } from './r2-client.js'
+import { TransferManager } from './transfer-manager.js'
 import { UIManager } from './ui-manager.js'
 import { getErrorMessage, extractFileName } from './utils.js'
 
@@ -12,12 +13,15 @@ class FileOperations {
   #ui
   /** @type {FileExplorer} */
   #explorer
+  /** @type {TransferManager} */
+  #transfer
 
-  /** @param {R2Client} r2 @param {UIManager} ui @param {FileExplorer} explorer */
-  constructor(r2, ui, explorer) {
+  /** @param {R2Client} r2 @param {UIManager} ui @param {FileExplorer} explorer @param {TransferManager} transfer */
+  constructor(r2, ui, explorer, transfer) {
     this.#r2 = r2
     this.#ui = ui
     this.#explorer = explorer
+    this.#transfer = transfer
   }
 
   /** @param {string} key @param {boolean} isFolder */
@@ -359,15 +363,27 @@ class FileOperations {
     return true
   }
 
-  /** @param {string} key */
-  async download(key) {
+  /** @param {string} key @param {number} [size] */
+  async download(key, size) {
     try {
-      const url = await this.#r2.getDownloadUrl(key, extractFileName(key))
-      const a = document.createElement('a')
-      a.href = url
-      document.body.appendChild(a)
-      a.click()
-      a.remove()
+      const filename = extractFileName(key)
+
+      /** @type {FileSystemFileHandle | undefined} */
+      let fileHandle
+      const showSavePicker = /** @type {any} */ (window).showSaveFilePicker
+      if (typeof showSavePicker === 'function') {
+        try {
+          fileHandle = await showSavePicker({ suggestedName: filename })
+        } catch (/** @type {any} */ e) {
+          if (e.name === 'AbortError') return
+          throw e
+        }
+      }
+
+      await this.#transfer.addDownload(key, filename, size, fileHandle)
+      if (!this.#transfer.isOpen) {
+        this.#transfer.open()
+      }
     } catch (/** @type {any} */ err) {
       const errorKey = getErrorMessage(err)
       if (errorKey === 'networkError') {

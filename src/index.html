@@ -548,66 +548,87 @@
       </div>
     </section>
 
-    <!-- App Shell -->
-    <div id="app" hidden>
-      <!-- Topbar -->
-      <header class="topbar">
-        <div class="flex items-center" style="gap: 8px">
-          <img src="favicon.ico" alt="" class="topbar-logo" />
-          <h1 class="topbar-title">R2 Web</h1>
+    <!-- Bucket Config Dialog (for add/edit bucket) -->
+    <dialog id="bucket-config-dialog">
+      <form id="bucket-config-form" method="dialog">
+        <div class="dialog-header">
+          <h2 id="bucket-config-title">添加 Bucket</h2>
+          <div class="dialog-header-actions">
+            <button type="button" class="icon-btn sm" id="bucket-config-close" data-tooltip="关闭">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
         </div>
-        <div class="flex items-center" style="gap: 4px">
-          <button type="button" class="icon-btn" id="share-btn" data-tooltip="分享配置">
-            <svg
-              class="icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <circle cx="18" cy="5" r="3" />
-              <circle cx="6" cy="12" r="3" />
-              <circle cx="18" cy="19" r="3" />
-              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-            </svg>
-          </button>
-          <button type="button" class="icon-btn" id="settings-btn" data-tooltip="设置">
-            <svg
-              class="icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <circle cx="12" cy="12" r="3" />
-              <path
-                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
-              />
-            </svg>
-          </button>
-          <button type="button" class="icon-btn" id="logout-btn" data-tooltip="安全退出">
-            <svg
-              class="icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
-          </button>
+        <div class="dialog-body">
+          <div class="config-section">
+            <div class="field">
+              <div class="field-label"><label for="bucket-cfg-account-id">账户 ID（Account ID）</label></div>
+              <input id="bucket-cfg-account-id" name="accountId" type="text" required autocomplete="off" />
+            </div>
+            <div class="field">
+              <div class="field-label"><label for="bucket-cfg-access-key">访问密钥 ID（Access Key ID）</label></div>
+              <input id="bucket-cfg-access-key" name="accessKeyId" type="text" required autocomplete="off" />
+            </div>
+            <div class="field">
+              <div class="field-label"><label for="bucket-cfg-secret-key">秘密访问密钥（Secret Access Key）</label></div>
+              <input id="bucket-cfg-secret-key" name="secretAccessKey" type="password" required autocomplete="off" />
+            </div>
+            <div class="field">
+              <div class="field-label"><label for="bucket-cfg-bucket">存储桶名称（Bucket Name）</label></div>
+              <input id="bucket-cfg-bucket" name="bucket" type="text" required autocomplete="off" />
+            </div>
+            <div class="field">
+              <div class="field-label"><label for="bucket-cfg-custom-domain">自定义域名（Custom Domain）</label></div>
+              <input id="bucket-cfg-custom-domain" name="customDomain" type="text" autocomplete="off" placeholder="https://cdn.example.com" />
+            </div>
+            <div class="field">
+              <div class="field-label"><label for="bucket-cfg-bucket-access">存储桶可见性（Bucket Visibility）</label></div>
+              <select id="bucket-cfg-bucket-access">
+                <option value="public">公开（Public）</option>
+                <option value="private">私有（Private）</option>
+              </select>
+            </div>
+          </div>
         </div>
-      </header>
+        <div class="dialog-footer">
+          <button type="button" class="btn secondary" id="bucket-config-cancel">取消</button>
+          <button type="submit" class="btn primary" id="bucket-config-submit">保存</button>
+        </div>
+      </form>
+    </dialog>
 
+    <!-- App Shell -->
+    <div id="app" hidden style="height: 100dvh;overflow: hidden;">
+      <!-- App Body (sidebar + main) -->
+      <div class="app-body">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+          <div class="sidebar-header">
+            <span class="sidebar-title">Buckets</span>
+            <button type="button" class="icon-btn sm" id="sidebar-collapse-btn" data-tooltip="收起侧栏">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <line x1="9" y1="3" x2="9" y2="21" />
+              </svg>
+            </button>
+          </div>
+          <div class="sidebar-list" id="sidebar-bucket-list">
+            <!-- Bucket items rendered dynamically -->
+          </div>
+          <div class="sidebar-footer">
+            <button type="button" class="btn secondary sm sidebar-add-btn" id="sidebar-add-bucket-btn">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              <span id="sidebar-add-text">添加 Bucket</span>
+            </button>
+          </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="app-main">
       <!-- Toolbar -->
       <div class="toolbar">
         <div class="flex items-center" style="gap: 4px">
@@ -891,6 +912,24 @@
             </svg>
             <span>上传</span>
           </button>
+          <button type="button" class="btn sm transfer-toggle-btn" id="transfer-btn">
+            <svg
+              class="icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="17 1 21 5 17 9" />
+              <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+              <polyline points="7 23 3 19 7 15" />
+              <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+            </svg>
+            <span>传输列表</span>
+            <span class="transfer-badge" id="transfer-badge" hidden>0</span>
+          </button>
         </div>
       </div>
 
@@ -934,6 +973,47 @@
           </button>
         </div>
         <div class="upload-panel-body" id="upload-panel-body"></div>
+      </div>
+
+      <!-- Transfer Manager Panel -->
+      <div class="transfer-panel" id="transfer-panel" hidden>
+        <div class="transfer-panel-header">
+          <div class="transfer-tabs">
+            <button type="button" class="transfer-tab active" id="transfer-tab-upload">上传</button>
+            <button type="button" class="transfer-tab" id="transfer-tab-download">下载</button>
+          </div>
+          <div class="transfer-header-actions">
+            <button type="button" class="icon-btn sm" id="transfer-clear-btn" data-tooltip="清除已完成">
+              <svg
+                class="icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              </svg>
+            </button>
+            <button type="button" class="icon-btn sm" id="transfer-panel-close" data-tooltip="关闭">
+              <svg
+                class="icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="transfer-panel-body" id="transfer-panel-body"></div>
       </div>
 
       <!-- File Browser -->
@@ -984,6 +1064,8 @@
           <span id="paste-hint-text">粘贴文件到当前目录</span>
         </div>
       </main>
+        </div><!-- /.app-main -->
+      </div><!-- /.app-body -->
     </div>
 
     <!-- Preview Dialog -->

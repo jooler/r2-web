@@ -7,12 +7,14 @@ import {
   DENSITY_KEY,
   SORT_BY_KEY,
   SORT_ORDER_KEY,
+  SIDEBAR_COLLAPSED_KEY,
 } from './constants.js'
 import { ConfigManager } from './config-manager.js'
 import { FileExplorer } from './file-explorer.js'
 import { FileOperations } from './file-operations.js'
 import { FilePreview } from './file-preview.js'
 import { UploadManager } from './upload-manager.js'
+import { TransferManager } from './transfer-manager.js'
 import { R2Client } from './r2-client.js'
 import { UIManager } from './ui-manager.js'
 import { getCurrentLang, setLang, t } from './i18n.js'
@@ -36,10 +38,14 @@ class App {
   #preview = null
   /** @type {FileOperations | null} */
   #ops = null
+  /** @type {TransferManager | null} */
+  #transfer = null
   #appEventsBound = false
   #batchMode = false
   /** @type {((e: TransitionEvent) => void) | null} */
   #onBarTransitionEnd = null
+  /** @type {string | null} */
+  #openDropdownId = null
 
   constructor() {
     this.#config = new ConfigManager()
@@ -76,11 +82,13 @@ class App {
 
     this.#bindGlobalEvents()
     this.#bindHeroEvents()
+    this.#initSidebar()
   }
 
   #applyI18nToHTML() {
     document.title = t('appTitle')
-    $('.topbar-title').textContent = t('appTitle')
+    const topbarTitle = $('.topbar-title')
+    if (topbarTitle) topbarTitle.textContent = t('appTitle')
 
     const heroTitle = $('#hero-title')
     if (heroTitle) heroTitle.textContent = t('appTitle')
@@ -105,13 +113,19 @@ class App {
     const heroF8 = $('#hero-f8')
     if (heroF8) heroF8.textContent = t('heroF8')
 
-    $('#tab-preferences').textContent = t('configTabPreferences')
-    $('#tab-r2').textContent = t('configTabR2')
-    $('#tab-upload').textContent = t('configTabUpload')
-    $('#tab-compression').textContent = t('configTabCompression')
-    $('#tab-about').textContent = t('configTabAbout')
+    const tabPreferences = $('#tab-preferences')
+    if (tabPreferences) tabPreferences.textContent = t('configTabPreferences')
+    const tabR2 = $('#tab-r2')
+    if (tabR2) tabR2.textContent = t('configTabR2')
+    const tabUpload = $('#tab-upload')
+    if (tabUpload) tabUpload.textContent = t('configTabUpload')
+    const tabCompression = $('#tab-compression')
+    if (tabCompression) tabCompression.textContent = t('configTabCompression')
+    const tabAbout = $('#tab-about')
+    if (tabAbout) tabAbout.textContent = t('configTabAbout')
 
-    $('#lbl-theme').textContent = t('lblTheme')
+    const lblTheme = $('#lbl-theme')
+    if (lblTheme) lblTheme.textContent = t('lblTheme')
     const themeSelect = $('#cfg-theme')
     if (themeSelect) {
       $('option[value="light"]', themeSelect).textContent = t('themeLight')
@@ -119,9 +133,11 @@ class App {
       $('option[value="auto"]', themeSelect).textContent = t('themeAuto')
     }
 
-    $('#lbl-language').textContent = t('lblLanguage')
+    const lblLanguage = $('#lbl-language')
+    if (lblLanguage) lblLanguage.textContent = t('lblLanguage')
 
-    $('#lbl-density').textContent = t('lblDensity')
+    const lblDensity = $('#lbl-density')
+    if (lblDensity) lblDensity.textContent = t('lblDensity')
     const densitySelect = $('#cfg-density')
     if (densitySelect) {
       $('option[value="compact"]', densitySelect).textContent = t('densityCompact')
@@ -129,29 +145,40 @@ class App {
       $('option[value="loose"]', densitySelect).textContent = t('densityLoose')
     }
 
-    $('#config-title').textContent = t('appTitle')
-    $('#lbl-account-id').textContent = t('accountId')
-    $('#lbl-access-key').textContent = t('accessKeyId')
-    $('#lbl-secret-key').textContent = t('secretAccessKey')
-    $('#lbl-bucket').textContent = t('bucketName')
-    $('#lbl-custom-domain').textContent = t('customDomain')
-    $('#lbl-bucket-access').textContent = t('bucketAccess')
+    const configTitle = $('#config-title')
+    if (configTitle) configTitle.textContent = t('appTitle')
+    const lblAccountId = $('#lbl-account-id')
+    if (lblAccountId) lblAccountId.textContent = t('accountId')
+    const lblAccessKey = $('#lbl-access-key')
+    if (lblAccessKey) lblAccessKey.textContent = t('accessKeyId')
+    const lblSecretKey = $('#lbl-secret-key')
+    if (lblSecretKey) lblSecretKey.textContent = t('secretAccessKey')
+    const lblBucket = $('#lbl-bucket')
+    if (lblBucket) lblBucket.textContent = t('bucketName')
+    const lblCustomDomain = $('#lbl-custom-domain')
+    if (lblCustomDomain) lblCustomDomain.textContent = t('customDomain')
+    const lblBucketAccess = $('#lbl-bucket-access')
+    if (lblBucketAccess) lblBucketAccess.textContent = t('bucketAccess')
     const bucketAccessSelect = $('#cfg-bucket-access')
     if (bucketAccessSelect) {
       $('option[value="public"]', bucketAccessSelect).textContent = t('bucketAccessPublic')
       $('option[value="private"]', bucketAccessSelect).textContent = t('bucketAccessPrivate')
     }
 
-    $('#lbl-filename-tpl').textContent = t('filenameTpl')
-    $('#lbl-filename-tpl-scope').textContent = t('filenameTplScope')
+    const lblFilenameTpl = $('#lbl-filename-tpl')
+    if (lblFilenameTpl) lblFilenameTpl.textContent = t('filenameTpl')
+    const lblFilenameTplScope = $('#lbl-filename-tpl-scope')
+    if (lblFilenameTplScope) lblFilenameTplScope.textContent = t('filenameTplScope')
     const filenameScopeSelect = $('#cfg-filename-tpl-scope')
     if (filenameScopeSelect) {
       $('option[value="images"]', filenameScopeSelect).textContent = t('filenameTplScopeImages')
       $('option[value="all"]', filenameScopeSelect).textContent = t('filenameTplScopeAll')
     }
-    $('#filename-tpl-hint').textContent = t('filenameTplHintDetailed')
+    const filenameTplHint = $('#filename-tpl-hint')
+    if (filenameTplHint) filenameTplHint.textContent = t('filenameTplHintDetailed')
 
-    $('#lbl-compress-mode').textContent = t('compressMode')
+    const lblCompressMode = $('#lbl-compress-mode')
+    if (lblCompressMode) lblCompressMode.textContent = t('compressMode')
 
     const compressModeSelect = $('#cfg-compress-mode')
     if (compressModeSelect) {
@@ -160,7 +187,8 @@ class App {
       $('option[value="tinify"]', compressModeSelect).textContent = t('compressModeTinify')
     }
 
-    $('#lbl-compress-level').textContent = t('compressLevel')
+    const lblCompressLevel = $('#lbl-compress-level')
+    if (lblCompressLevel) lblCompressLevel.textContent = t('compressLevel')
 
     const compressLevelSelect = $('#cfg-compress-level')
     if (compressLevelSelect) {
@@ -239,9 +267,12 @@ class App {
     $('[data-action="move"] span').textContent = t('move')
     $('[data-action="delete"] span').textContent = t('delete')
 
-    $('#share-btn').dataset.tooltip = t('shareConfig')
-    $('#settings-btn').dataset.tooltip = t('settings')
-    $('#logout-btn').dataset.tooltip = t('logout')
+    const shareBtn = $('#share-btn')
+    if (shareBtn) shareBtn.dataset.tooltip = t('shareConfig')
+    const settingsBtn = $('#settings-btn')
+    if (settingsBtn) settingsBtn.dataset.tooltip = t('settings')
+    const logoutBtn = $('#logout-btn')
+    if (logoutBtn) logoutBtn.dataset.tooltip = t('logout')
     $('#refresh-btn').dataset.tooltip = t('refresh')
     $('#preview-copy-text').dataset.tooltip = t('copyText')
     $('#preview-copy-image').dataset.tooltip = t('copyImage')
@@ -293,12 +324,16 @@ class App {
     try {
       this.#r2.init(this.#config)
       this.#explorer = new FileExplorer(this.#r2, this.#ui)
-      this.#upload = new UploadManager(this.#r2, this.#ui, this.#explorer, this.#config)
+      this.#transfer = new TransferManager(this.#r2, this.#ui, this.#explorer)
+      await this.#transfer.init()
+      this.#upload = new UploadManager(this.#r2, this.#ui, this.#explorer, this.#config, this.#transfer)
       this.#preview = new FilePreview(this.#r2, this.#ui)
-      this.#ops = new FileOperations(this.#r2, this.#ui, this.#explorer)
+      this.#ops = new FileOperations(this.#r2, this.#ui, this.#explorer, this.#transfer)
+      this.#transfer.onUploadComplete(() => this.#explorer?.refresh())
 
       this.#hideHero()
       $('#app').hidden = false
+      this.#renderSidebar()
       this.#restoreViewPrefs()
       this.#explorer.setOnSelectionChange((count) => {
         if (!this.#batchMode) return
@@ -413,6 +448,239 @@ class App {
     localStorage.setItem(SORT_ORDER_KEY, order)
   }
 
+  // ─── Sidebar ───
+
+  #initSidebar() {
+    // Restore collapsed state
+    const collapsed = localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true'
+    if (collapsed) $('#sidebar').classList.add('collapsed')
+
+    // Collapse toggle
+    $('#sidebar-collapse-btn').addEventListener('click', () => {
+      const sidebar = /** @type {HTMLElement} */ ($('#sidebar'))
+      sidebar.classList.toggle('collapsed')
+      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(sidebar.classList.contains('collapsed')))
+    })
+
+    // Add bucket button
+    $('#sidebar-add-bucket-btn').addEventListener('click', () => {
+      this.#showBucketConfigDialog(null)
+    })
+
+    // Close dropdown on outside click
+    document.addEventListener('click', (e) => {
+      const target = /** @type {HTMLElement} */ (e.target)
+      if (!target.closest('.sidebar-dropdown') && !target.closest('.sidebar-item-menu')) {
+        this.#closeSidebarDropdown()
+      }
+    })
+
+    // Bucket config dialog events
+    const dialog = /** @type {HTMLDialogElement} */ ($('#bucket-config-dialog'))
+    $('#bucket-config-cancel').addEventListener('click', () => dialog.close())
+    $('#bucket-config-close').addEventListener('click', () => dialog.close())
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog) dialog.close()
+    })
+    const bcForm = /** @type {HTMLFormElement} */ ($('#bucket-config-form'))
+    bcForm.addEventListener('submit', (/** @type {Event} */ e) => {
+      e.preventDefault()
+    })
+
+    this.#renderSidebar()
+  }
+
+  #renderSidebar() {
+    const list = /** @type {HTMLElement} */ ($('#sidebar-bucket-list'))
+    const buckets = this.#config.getAllBuckets()
+    const activeId = this.#config.getActiveBucketId()
+    list.innerHTML = ''
+
+    for (const b of buckets) {
+      const item = document.createElement('div')
+      const displayName = b.name || b.bucket || 'Unnamed'
+      item.className = 'sidebar-item' + (b.id === activeId ? ' active' : '')
+      item.dataset.id = b.id
+      item.dataset.tooltip = displayName
+      item.innerHTML = `
+        <div class="sidebar-item-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <ellipse cx="12" cy="5" rx="9" ry="3" />
+            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+          </svg>
+        </div>
+        <span class="sidebar-item-name" title="${displayName}">${displayName}</span>
+        <button type="button" class="sidebar-item-menu" data-id="${b.id}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="5" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="12" cy="19" r="1" />
+          </svg>
+        </button>
+      `
+
+      // Click item to switch bucket
+      item.addEventListener('click', (e) => {
+        const target = /** @type {HTMLElement} */ (e.target)
+        if (target.closest('.sidebar-item-menu')) return
+        this.#switchBucket(b.id)
+      })
+
+      // Three-dot menu
+      const menuBtn = /** @type {HTMLElement} */ (item.querySelector('.sidebar-item-menu'))
+      menuBtn.addEventListener('click', (e) => {
+        e.stopPropagation()
+        this.#toggleSidebarDropdown(b.id, menuBtn)
+      })
+
+      list.appendChild(item)
+    }
+  }
+
+  /** @param {string} id @param {HTMLElement} anchor */
+  #toggleSidebarDropdown(id, anchor) {
+    if (this.#openDropdownId === id) {
+      this.#closeSidebarDropdown()
+      return
+    }
+    this.#closeSidebarDropdown()
+
+    const dropdown = document.createElement('div')
+    dropdown.className = 'sidebar-dropdown'
+    dropdown.dataset.dropdownId = id
+    dropdown.innerHTML = `
+      <button type="button" class="sidebar-dropdown-item" data-action="settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3" />
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+        </svg>
+        <span>设置</span>
+      </button>
+      <button type="button" class="sidebar-dropdown-item danger" data-action="delete">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6" />
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+        </svg>
+        <span>删除</span>
+      </button>
+    `
+
+    dropdown.querySelector('[data-action="settings"]').addEventListener('click', () => {
+      this.#closeSidebarDropdown()
+      this.#showBucketConfigDialog(id)
+    })
+
+    dropdown.querySelector('[data-action="delete"]').addEventListener('click', async () => {
+      this.#closeSidebarDropdown()
+      const buckets = this.#config.getAllBuckets()
+      const bucket = buckets.find((b) => b.id === id)
+      const name = bucket?.name || bucket?.bucket || 'Unnamed'
+      const ok = await this.#ui.confirm('删除 Bucket', `确定要删除「${name}」吗？`)
+      if (!ok) return
+      const wasActive = this.#config.getActiveBucketId() === id
+      this.#config.deleteBucket(id)
+      this.#renderSidebar()
+      if (wasActive) {
+        if (this.#config.getAllBuckets().length > 0) {
+          await this.#connectAndLoad()
+        } else {
+          $('#app').hidden = true
+          this.#showHero()
+        }
+      }
+    })
+
+    // Append to body with fixed positioning to avoid sidebar overflow clipping
+    document.body.appendChild(dropdown)
+    const rect = anchor.getBoundingClientRect()
+    dropdown.style.top = `${rect.top}px`
+    dropdown.style.left = `${rect.right + 4}px`
+    this.#openDropdownId = id
+    requestAnimationFrame(() => dropdown.classList.add('visible'))
+  }
+
+  #closeSidebarDropdown() {
+    if (!this.#openDropdownId) return
+    const dropdown = document.querySelector(`.sidebar-dropdown[data-dropdown-id="${this.#openDropdownId}"]`)
+    if (dropdown) {
+      dropdown.classList.remove('visible')
+      setTimeout(() => dropdown.remove(), 150)
+    }
+    this.#openDropdownId = null
+  }
+
+  /** @param {string} id */
+  async #switchBucket(id) {
+    if (this.#config.getActiveBucketId() === id) return
+    this.#config.setActiveBucket(id)
+    this.#renderSidebar()
+    await this.#connectAndLoad()
+  }
+
+  /** @param {string | null} editId - null for add, id for edit */
+  #showBucketConfigDialog(editId) {
+    const dialog = /** @type {HTMLDialogElement} */ ($('#bucket-config-dialog'))
+    const title = /** @type {HTMLElement} */ ($('#bucket-config-title'))
+    const accountInput = /** @type {HTMLInputElement} */ ($('#bucket-cfg-account-id'))
+    const accessInput = /** @type {HTMLInputElement} */ ($('#bucket-cfg-access-key'))
+    const secretInput = /** @type {HTMLInputElement} */ ($('#bucket-cfg-secret-key'))
+    const bucketInput = /** @type {HTMLInputElement} */ ($('#bucket-cfg-bucket'))
+    const domainInput = /** @type {HTMLInputElement} */ ($('#bucket-cfg-custom-domain'))
+    const accessSelect = /** @type {HTMLSelectElement} */ ($('#bucket-cfg-bucket-access'))
+
+    // Reset fields
+    accountInput.value = ''
+    accessInput.value = ''
+    secretInput.value = ''
+    bucketInput.value = ''
+    domainInput.value = ''
+    accessSelect.value = 'public'
+
+    if (editId) {
+      title.textContent = '编辑 Bucket'
+      const buckets = this.#config.getAllBuckets()
+      const cfg = buckets.find((b) => b.id === editId)
+      if (cfg) {
+        accountInput.value = cfg.accountId || ''
+        accessInput.value = cfg.accessKeyId || ''
+        secretInput.value = cfg.secretAccessKey || ''
+        bucketInput.value = cfg.bucket || ''
+        domainInput.value = cfg.customDomain || ''
+        accessSelect.value = cfg.bucketAccess || 'public'
+      }
+    } else {
+      title.textContent = '添加 Bucket'
+    }
+
+    $('#bucket-config-submit').onclick = async () => {
+      /** @type {import('./config-manager.js').AppConfig} */
+      const cfg = {
+        accountId: accountInput.value.trim(),
+        accessKeyId: accessInput.value.trim(),
+        secretAccessKey: secretInput.value.trim(),
+        bucket: bucketInput.value.trim(),
+        customDomain: domainInput.value.trim().replace(/\/+$/, ''),
+        bucketAccess: /** @type {'public' | 'private'} */ (accessSelect.value),
+      }
+
+      if (!cfg.accountId || !cfg.accessKeyId || !cfg.secretAccessKey || !cfg.bucket) {
+        this.#ui.toast('请填写所有必填字段', 'error')
+        return
+      }
+
+      if (editId) {
+        this.#config.updateBucket(editId, cfg)
+      } else {
+        this.#config.addBucket(cfg)
+      }
+
+      dialog.close()
+      this.#renderSidebar()
+      await this.#connectAndLoad()
+    }
+
+    dialog.showModal()
+  }
+
   #showHero() {
     $('#hero').hidden = false
     $('#app').hidden = true
@@ -424,7 +692,7 @@ class App {
 
   #bindHeroEvents() {
     $('#hero-connect-btn').addEventListener('click', () => {
-      this.#showConfigDialog('r2')
+      this.#showBucketConfigDialog(null)
     })
   }
 
@@ -573,9 +841,9 @@ class App {
   }
 
   #bindGlobalEvents() {
-    $('#settings-btn').addEventListener('click', () => this.#showConfigDialog())
+    $('#settings-btn')?.addEventListener('click', () => this.#showConfigDialog())
 
-    $('#logout-btn').addEventListener('click', async () => {
+    $('#logout-btn')?.addEventListener('click', async () => {
       const ok = await this.#ui.confirm(t('logoutConfirmTitle'), t('logoutConfirmMsg'))
       if (!ok) return
       this.#config.clear()
@@ -583,7 +851,7 @@ class App {
       this.#showHero()
     })
 
-    $('#share-btn').addEventListener('click', async () => {
+    $('#share-btn')?.addEventListener('click', async () => {
       if (!this.#config.isValid()) {
         this.#ui.toast(t('authFailed'), 'error')
         return
@@ -701,7 +969,7 @@ class App {
           })
           break
         case 'download':
-          /** @type {FileOperations} */ this.#ops.download(key)
+          /** @type {FileOperations} */ this.#ops.download(key, Number(menu.dataset.size ?? 0))
           break
         case 'copyPath':
           /** @type {FileOperations} */ this.#ops.copyAs(key, 'path')
@@ -742,6 +1010,7 @@ class App {
     const fileInput = /** @type {HTMLInputElement} */ ($('#file-input'))
     $('#upload-btn').addEventListener('click', () => fileInput.click())
     $('#empty-upload-btn').addEventListener('click', () => fileInput.click())
+    $('#transfer-btn').addEventListener('click', () => /** @type {TransferManager} */ (this.#transfer).toggle())
 
     fileInput.addEventListener('change', () => {
       if (fileInput.files && fileInput.files.length > 0) {

@@ -179,6 +179,54 @@ class R2Client {
     }
   }
 
+  // ---- Multipart Upload ----
+
+  /** @param {string} key @param {string} contentType @returns {Promise<string>} */
+  async createMultipartUpload(key, contentType) {
+    const url = `${/** @type {ConfigManager} */ (this.#config).getBucketUrl()}/${encodeS3Key(key)}?uploads`
+    const res = await /** @type {AwsClient} */ (this.#client).fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': contentType },
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const text = await res.text()
+    const doc = new DOMParser().parseFromString(text, 'application/xml')
+    const uploadId = doc.querySelector('UploadId')?.textContent
+    if (!uploadId) throw new Error('Failed to get UploadId')
+    return uploadId
+  }
+
+  /** @param {string} key @param {string} uploadId @param {number} partNumber */
+  async uploadPartSigned(key, uploadId, partNumber) {
+    const url = `${/** @type {ConfigManager} */ (this.#config).getBucketUrl()}/${encodeS3Key(key)}?partNumber=${partNumber}&uploadId=${encodeURIComponent(uploadId)}`
+    const req = await /** @type {AwsClient} */ (this.#client).sign(url, { method: 'PUT' })
+    return { url: req.url, headers: Object.fromEntries(req.headers.entries()) }
+  }
+
+  /** @param {string} key @param {string} uploadId @param {{partNumber: number, etag: string}[]} parts */
+  async completeMultipartUpload(key, uploadId, parts) {
+    const url = `${/** @type {ConfigManager} */ (this.#config).getBucketUrl()}/${encodeS3Key(key)}?uploadId=${encodeURIComponent(uploadId)}`
+    const xml = [
+      '<CompleteMultipartUpload>',
+      ...parts.sort((a, b) => a.partNumber - b.partNumber).map(
+        (p) => `<Part><PartNumber>${p.partNumber}</PartNumber><ETag>${p.etag}</ETag></Part>`,
+      ),
+      '</CompleteMultipartUpload>',
+    ].join('')
+    const res = await /** @type {AwsClient} */ (this.#client).fetch(url, {
+      method: 'POST',
+      body: xml,
+      headers: { 'Content-Type': 'application/xml' },
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  }
+
+  /** @param {string} key @param {string} uploadId */
+  async abortMultipartUpload(key, uploadId) {
+    const url = `${/** @type {ConfigManager} */ (this.#config).getBucketUrl()}/${encodeS3Key(key)}?uploadId=${encodeURIComponent(uploadId)}`
+    await /** @type {AwsClient} */ (this.#client).fetch(url, { method: 'DELETE' })
+  }
+
   /** @param {string} prefix */
   async createFolder(prefix) {
     const key = prefix.endsWith('/') ? prefix : prefix + '/'
