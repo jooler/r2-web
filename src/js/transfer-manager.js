@@ -597,8 +597,9 @@ class TransferManager {
 
       xhr.addEventListener('load', () => {
         if (xhr.status >= 200 && xhr.status < 300) {
-          const etag = xhr.getResponseHeader('ETag') || ''
-          resolve(etag)
+          const etag = xhr.getResponseHeader('ETag')
+          if (!etag) console.warn('ETag header not accessible — add "ExposeHeaders":["ETag"] to your R2 CORS policy.')
+          resolve(etag || '')
         } else {
           reject(new Error(`HTTP ${xhr.status}`))
         }

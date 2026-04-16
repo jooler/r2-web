@@ -98,6 +98,7 @@ In the Cloudflare dashboard, go to R2 → Bucket → Settings → CORS Policy an
     "AllowedOrigins": ["https://r2.viki.moe"],
     "AllowedMethods": ["GET", "POST", "PUT", "DELETE", "HEAD"],
     "AllowedHeaders": ["authorization", "content-type", "x-amz-content-sha256", "x-amz-date", "x-amz-copy-source"],
+    "ExposeHeaders": ["ETag"],
     "MaxAgeSeconds": 86400
   }
 ]
